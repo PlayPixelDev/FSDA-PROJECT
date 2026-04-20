@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechFest 2025 – Ticket Booking System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0eeff;min-height:100vh;color:#1a1a1a}
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* ─── LOGIN ─── */
+.login-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4A3AB7 0%,#7B68EE 100%);padding:1rem}
+.login-card{background:#fff;border-radius:18px;padding:2.5rem 2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(74,58,183,.25)}
+.brand{text-align:center;margin-bottom:2rem}
+.brand-icon{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#4A3AB7,#7B68EE);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#fff;font-size:24px;font-weight:700;letter-spacing:-1px}
+.brand h1{font-size:22px;font-weight:700;color:#1a1a1a}
+.brand p{font-size:13px;color:#777;margin-top:4px}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:14px;background:#fff;color:#1a1a1a;outline:none;transition:border .15s}
+.field input:focus,.field select:focus{border-color:#4A3AB7;box-shadow:0 0 0 3px rgba(74,58,183,.1)}
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#4A3AB7,#7B68EE);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer}
+.btn-primary:hover{opacity:.92}
+.err-msg{color:#c0392b;font-size:12px;margin-top:4px;display:none}
+.err-msg.show{display:block}
+.demo-box{background:#f0eeff;border-radius:9px;padding:12px 14px;margin-top:1.25rem;font-size:12px;color:#3C3489;line-height:1.7}
+.demo-box strong{display:block;margin-bottom:4px;font-size:13px}
+
+/* ─── HEADER ─── */
+.header{background:linear-gradient(90deg,#4A3AB7,#7B68EE);color:#fff;padding:14px 2rem;display:flex;align-items:center;justify-content:space-between}
+.header h2{font-size:17px;font-weight:600}
+.user-pill{display:flex;align-items:center;gap:10px;font-size:13px}
+.avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+
+/* ─── NAV TABS ─── */
+.nav-bar{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 2rem;display:flex;gap:0}
+.nav-tab{padding:14px 20px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:#888;border-bottom:3px solid transparent;transition:all .15s}
+.nav-tab.active{color:#4A3AB7;border-bottom-color:#4A3AB7}
+.nav-tab:hover{color:#4A3AB7}
+
+/* ─── MAIN ─── */
+.main-wrap{max-width:960px;margin:2rem auto;padding:0 1rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.main-wrap{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #ebebeb;border-radius:16px;padding:1.5rem}
+.card-title{font-size:15px;font-weight:700;margin-bottom:1.25rem;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.card-title .dot{width:9px;height:9px;border-radius:50%;background:#4A3AB7}
+
+/* ─── EVENT DETAILS ─── */
+.event-banner{background:linear-gradient(135deg,#4A3AB7 0%,#7B68EE 100%);border-radius:12px;padding:1.5rem;color:#fff;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.event-banner::after{content:'🎉';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.25}
+.event-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.event-dept{font-size:13px;opacity:.9}
+.detail-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13.5px}
+.detail-row:last-child{border-bottom:none}
+.detail-icon{font-size:16px;min-width:22px}
+.detail-label{color:#888;min-width:100px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.detail-val{font-weight:600;color:#1a1a1a}
+.ticket-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:#e6f7ee;color:#1a7a45}
+.badge-amber{background:#fff3e0;color:#b35a00}
+.badge-red{background:#fdecea;color:#b71c1c}
+.avail-bar{height:6px;background:#eee;border-radius:3px;margin-top:8px;overflow:hidden}
+.avail-fill{height:6px;border-radius:3px;background:linear-gradient(90deg,#4A3AB7,#7B68EE);transition:width .4s}
+
+/* ─── FORM ─── */
+.form-field{margin-bottom:1rem}
+.form-field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.form-field input,.form-field select{width:100%;padding:10px 13px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:14px;background:#fff;color:#1a1a1a;outline:none}
+.form-field input:focus,.form-field select:focus{border-color:#4A3AB7;box-shadow:0 0 0 3px rgba(74,58,183,.1)}
+.form-field input.error-field,.form-field select.error-field{border-color:#e74c3c;background:#fff8f8}
+.field-err{color:#c0392b;font-size:11px;margin-top:4px;display:none}
+.field-err.show{display:block}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-book{width:100%;padding:13px;background:linear-gradient(135deg,#4A3AB7,#7B68EE);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;margin-top:.5rem}
+.btn-book:hover{opacity:.9}
+.btn-book:disabled{opacity:.4;cursor:not-allowed}
+.btn-reset{width:100%;padding:10px;background:none;border:1.5px solid #e0e0e0;color:#888;border-radius:9px;font-size:14px;cursor:pointer;margin-top:8px}
+.btn-reset:hover{border-color:#4A3AB7;color:#4A3AB7}
+.global-err{color:#c0392b;font-size:13px;margin-bottom:.5rem;display:none;background:#fff0f0;padding:10px 12px;border-radius:8px;border-left:3px solid #e74c3c}
+
+/* ─── CONFIRMATION ─── */
+.confirm-wrap{max-width:560px;margin:40px auto;padding:0 1rem}
+.confirm-card{background:#fff;border:1px solid #ebebeb;border-radius:18px;padding:2.5rem 2rem;text-align:center}
+.success-ring{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#27ae60,#2ecc71);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:#fff;font-size:30px}
+.confirm-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:6px}
+.confirm-sub{font-size:13px;color:#888;margin-bottom:1.75rem}
+.summary-table{width:100%;border-collapse:collapse;font-size:13.5px;text-align:left;margin-bottom:1rem}
+.summary-table tr{border-bottom:1px solid #f0f0f0}
+.summary-table td{padding:9px 6px}
+.summary-table td:first-child{color:#888;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.summary-table td:last-child{text-align:right;font-weight:600}
+.summary-table .total-row td{font-size:16px;font-weight:700;color:#4A3AB7;border-top:2px solid #e0e0e0;border-bottom:none;padding-top:14px}
+.ref-badge{display:inline-block;background:#f0eeff;color:#3C3489;border-radius:8px;padding:6px 16px;font-size:13px;margin-top:.75rem;font-weight:700;letter-spacing:.05em}
+.confirm-btns{display:flex;gap:10px;margin-top:1.5rem}
+.btn-pdf{flex:1;padding:11px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-print{flex:1;padding:11px;background:linear-gradient(135deg,#27ae60,#219a52);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-new-booking{width:100%;padding:12px;background:linear-gradient(135deg,#4A3AB7,#7B68EE);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+
+/* ─── HISTORY ─── */
+.hist-wrap{max-width:960px;margin:2rem auto;padding:0 1rem}
+.hist-card{background:#fff;border:1px solid #ebebeb;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.hist-left{}
+.hist-name{font-size:14px;font-weight:700}
+.hist-meta{font-size:12px;color:#888;margin-top:3px}
+.hist-ref{font-size:11px;color:#4A3AB7;font-weight:600;margin-top:3px}
+.hist-right{text-align:right}
+.hist-amt{font-size:18px;font-weight:700;color:#4A3AB7}
+.hist-qty{font-size:11px;color:#888;margin-top:2px}
+.empty-state{text-align:center;padding:4rem 2rem;color:#aaa}
+.empty-icon{font-size:48px;display:block;margin-bottom:1rem}
+
+/* ─── ADMIN ─── */
+.admin-wrap{max-width:960px;margin:2rem auto;padding:0 1rem}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem}
+@media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:#fff;border:1px solid #ebebeb;border-radius:14px;padding:1.25rem;text-align:center}
+.stat-num{font-size:30px;font-weight:800;color:#4A3AB7}
+.stat-label{font-size:12px;color:#888;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.admin-table-wrap{background:#fff;border:1px solid #ebebeb;border-radius:16px;overflow:hidden}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{background:#f8f7ff;padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #ebebeb}
+.admin-table td{padding:12px 16px;border-bottom:1px solid #f5f5f5;color:#1a1a1a}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:#faf9ff}
+.search-bar{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;margin-bottom:1rem}
+.search-bar:focus{border-color:#4A3AB7}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.admin-title{font-size:16px;font-weight:700}
+.btn-export{padding:9px 18px;background:#4A3AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* ─── PRINT TICKET ─── */
+@media print{
+  body > *:not(#print-area){display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:9999;padding:40px}
+.ticket-print{max-width:600px;margin:0 auto;border:2px dashed #4A3AB7;border-radius:16px;overflow:hidden}
+.ticket-header{background:linear-gradient(135deg,#4A3AB7,#7B68EE);color:#fff;padding:24px;text-align:center}
+.ticket-header h2{font-size:28px;font-weight:800;margin-bottom:4px}
+.ticket-header p{opacity:.9;font-size:14px}
+.ticket-body{padding:24px}
+.ticket-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ticket-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:3px}
+.ticket-field span{font-size:15px;font-weight:700;color:#1a1a1a}
+.ticket-footer{background:#f8f7ff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.ticket-ref{font-size:12px;color:#4A3AB7;font-weight:700;letter-spacing:.08em}
+.ticket-total{font-size:20px;font-weight:800;color:#4A3AB7}
+.close-print{position:fixed;top:16px;right:16px;padding:10px 20px;background:#4A3AB7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;z-index:10000}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div class="page active" id="page-login">
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">TF</div>
+        <h1>TechFest 2025</h1>
+        <p>Department Event Ticket Booking System</p>
+      </div>
+      <div class="field">
+        <label>Email ID</label>
+        <input type="text" id="login-email" placeholder="you@college.edu" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="err-msg" id="login-email-err"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="err-msg" id="login-pass-err"></div>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select id="login-role">
+          <option value="">Select your role</option>
+          <option value="Student">Student</option>
+          <option value="Faculty">Faculty</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <div class="err-msg" id="login-role-err"></div>
+      </div>
+      <div class="err-msg show" id="login-global-err" style="margin-bottom:.75rem;font-size:13px"></div>
+      <button class="btn-primary" onclick="doLogin()">Sign In &rarr;</button>
+      <div class="demo-box">
+        <strong>Demo Credentials</strong>
+        Student &nbsp;→&nbsp; <code>student@college.edu</code> &nbsp;/&nbsp; <code>1234</code><br>
+        Faculty &nbsp;→&nbsp; <code>faculty@college.edu</code> &nbsp;/&nbsp; <code>1234</code><br>
+        Admin &nbsp;&nbsp;→&nbsp; <code>admin@college.edu</code> &nbsp;/&nbsp; <code>admin123</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP PAGE ═══════════════ -->
+<div class="page" id="page-app">
+  <div class="header">
+    <h2>🎟️ TechFest 2025 – Ticket Booking</h2>
+    <div class="user-pill">
+      <div class="avatar" id="hdr-avatar">U</div>
+      <span id="hdr-name">User</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="nav-bar" id="main-nav">
+    <button class="nav-tab active" onclick="switchTab('book',this)">🎫 Book Tickets</button>
+    <button class="nav-tab" onclick="switchTab('history',this)">📋 My Bookings</button>
+    <button class="nav-tab" onclick="switchTab('admin',this)" id="admin-tab" style="display:none">⚙️ Admin Panel</button>
+  </div>
+
+  <!-- BOOK TAB -->
+  <div id="tab-book">
+    <div class="main-wrap">
+      <!-- Event Details -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Event Details</div>
+        <div class="event-banner">
+          <div class="event-name">TechFest 2025</div>
+          <div class="event-dept">Dept. of Computer Science &amp; Engineering</div>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">📅</span>
+          <span class="detail-label">Date &amp; Time</span>
+          <span class="detail-val">20 April 2025 &nbsp;|&nbsp; 10:00 AM</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">📍</span>
+          <span class="detail-label">Venue</span>
+          <span class="detail-val">Main Auditorium, Block A</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">💰</span>
+          <span class="detail-label">Price</span>
+          <span class="detail-val">₹150 per ticket</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">🪑</span>
+          <span class="detail-label">Available</span>
+          <span class="detail-val">
+            <span id="avail-count">50</span> / 50 &nbsp;
+            <span class="ticket-badge badge-green" id="avail-badge">Available</span>
+          </span>
+        </div>
+        <div class="avail-bar"><div class="avail-fill" id="avail-fill" style="width:100%"></div></div>
+        <div class="detail-row">
+          <span class="detail-icon">👥</span>
+          <span class="detail-label">Organiser</span>
+          <span class="detail-val">CSE Tech Club</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">📌</span>
+          <span class="detail-label">Category</span>
+          <span class="detail-val">Technical Fest – Open to All</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-icon">📞</span>
+          <span class="detail-label">Contact</span>
+          <span class="detail-val">techclub@college.edu</span>
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Book Your Tickets</div>
+        <div class="form-field">
+          <label>Full Name *</label>
+          <input type="text" id="f-name" placeholder="Enter your full name">
+          <div class="field-err" id="err-name">Full name is required.</div>
+        </div>
+        <div class="form-field">
+          <label>Email ID *</label>
+          <input type="text" id="f-email" placeholder="name@college.edu">
+          <div class="field-err" id="err-email">Enter a valid email address.</div>
+        </div>
+        <div class="form-field">
+          <label>Phone Number *</label>
+          <input type="text" id="f-phone" placeholder="10-digit mobile number">
+          <div class="field-err" id="err-phone">Enter a valid 10-digit phone number.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Department *</label>
+            <select id="f-dept">
+              <option value="">Select dept</option>
+              <option>CSE</option><option>ECE</option><option>EEE</option>
+              <option>MECH</option><option>CIVIL</option><option>IT</option>
+              <option>MBA</option><option>MCA</option><option>AIDS</option>
+            </select>
+            <div class="field-err" id="err-dept">Select your department.</div>
+          </div>
+          <div class="form-field">
+            <label>No. of Tickets *</label>
+            <input type="number" id="f-qty" min="1" max="10" placeholder="1">
+            <div class="field-err" id="err-qty">Enter a valid quantity.</div>
+          </div>
+        </div>
+        <div class="global-err" id="global-err"></div>
+        <button class="btn-book" id="btn-book" onclick="submitBooking()">✔ Confirm Booking</button>
+        <button class="btn-reset" onclick="resetForm()">↺ Reset Form</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" style="display:none">
+    <div class="hist-wrap">
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title"><span class="dot"></span>My Booking History</div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div id="tab-admin" style="display:none">
+    <div class="admin-wrap">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="st-total">0</div><div class="stat-label">Total Bookings</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-tickets">0</div><div class="stat-label">Tickets Sold</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-revenue">₹0</div><div class="stat-label">Revenue</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-remain">50</div><div class="stat-label">Remaining</div></div>
+      </div>
+      <div class="admin-table-wrap">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #ebebeb">
+          <div class="admin-header">
+            <div class="admin-title">All Bookings</div>
+            <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+          </div>
+          <input class="search-bar" id="admin-search" type="text" placeholder="Search by name, email, ref…" oninput="renderAdmin()">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Ref</th><th>Name</th><th>Email</th><th>Dept</th><th>Tickets</th><th>Amount</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="admin-tbody"></tbody>
+          </table>
+          <div id="admin-empty" style="text-align:center;padding:2rem;color:#aaa;display:none">No bookings found.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CONFIRMATION PAGE ═══════════════ -->
+<div class="page" id="page-confirm">
+  <div class="header">
+    <h2>🎟️ TechFest 2025 – Ticket Booking</h2>
+    <div class="user-pill">
+      <div class="avatar" id="hdr-avatar2">U</div>
+      <span id="hdr-name2">User</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="confirm-wrap">
+    <div class="confirm-card">
+      <div class="success-ring">✓</div>
+      <div class="confirm-title">Booking Confirmed! 🎉</div>
+      <div class="confirm-sub">Your tickets are booked. See you at TechFest 2025!</div>
+      <table class="summary-table">
+        <tr><td>Attendee</td><td id="s-name"></td></tr>
+        <tr><td>Email</td><td id="s-email"></td></tr>
+        <tr><td>Phone</td><td id="s-phone"></td></tr>
+        <tr><td>Department</td><td id="s-dept"></td></tr>
+        <tr><td>Event</td><td>TechFest 2025</td></tr>
+        <tr><td>Venue</td><td>Main Auditorium, Block A</td></tr>
+        <tr><td>Date &amp; Time</td><td>20 April 2025, 10:00 AM</td></tr>
+        <tr><td>Tickets Booked</td><td id="s-qty"></td></tr>
+        <tr><td>Price per Ticket</td><td>₹150</td></tr>
+        <tr class="total-row"><td>Total Amount</td><td id="s-total"></td></tr>
+      </table>
+      <div class="ref-badge" id="s-ref"></div>
+      <div class="confirm-btns">
+        <button class="btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+        <button class="btn-print" onclick="printTicket()">🖨 Print Ticket</button>
+      </div>
+      <button class="btn-new-booking" onclick="bookAnother()">+ Book More Tickets</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PRINT AREA ═══════════════ -->
+<div id="print-area">
+  <button class="close-print" onclick="closePrint()" style="display:none" id="close-print-btn">✕ Close</button>
+  <div class="ticket-print">
+    <div class="ticket-header">
+      <h2>🎟️ TechFest 2025</h2>
+      <p>Dept. of Computer Science & Engineering &nbsp;|&nbsp; Main Auditorium, Block A</p>
+      <p style="margin-top:4px;opacity:.85">20 April 2025 &nbsp;|&nbsp; 10:00 AM</p>
+    </div>
+    <div class="ticket-body">
+      <div class="ticket-grid">
+        <div class="ticket-field"><label>Attendee Name</label><span id="pt-name">—</span></div>
+        <div class="ticket-field"><label>Department</label><span id="pt-dept">—</span></div>
+        <div class="ticket-field"><label>Email</label><span id="pt-email">—</span></div>
+        <div class="ticket-field"><label>Phone</label><span id="pt-phone">—</span></div>
+        <div class="ticket-field"><label>No. of Tickets</label><span id="pt-qty">—</span></div>
+        <div class="ticket-field"><label>Booking Date</label><span id="pt-date">—</span></div>
+      </div>
+    </div>
+    <div class="ticket-footer">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:2px">Booking Reference</div>
+        <div class="ticket-ref" id="pt-ref">—</div>
+      </div>
+      <div class="ticket-total" id="pt-total">₹0</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───
+const DEMO_USERS = [
+  {email:'student@college.edu',pass:'1234',role:'Student',name:'Ravi Kumar'},
+  {email:'faculty@college.edu',pass:'1234',role:'Faculty',name:'Dr. Priya Nair'},
+  {email:'admin@college.edu',pass:'admin123',role:'Admin',name:'Admin'}
+];
+const TOTAL_TICKETS = 50;
+const PRICE = 150;
+
+let state = {
+  currentUser: null,
+  bookings: JSON.parse(localStorage.getItem('tf_bookings')||'[]'),
+  get available(){ return TOTAL_TICKETS - this.bookings.reduce((s,b)=>s+b.qty,0); }
+};
+let lastBooking = null;
+
+// ─── UTILS ───
+const v = id => { const el=document.getElementById(id); return el?el.value:''; };
+const el = id => document.getElementById(id);
+function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); el(id).classList.add('active'); }
+function setErr(id,msg){ const e=el(id); if(e){e.textContent=msg;e.classList.add('show');} }
+function clearErr(id){ const e=el(id); if(e){e.textContent='';e.classList.remove('show');} }
+function markErr(fid,eid,msg){ const f=el(fid),e=el(eid); if(f)f.classList.add('error-field'); if(e&&msg){e.textContent=msg;e.classList.add('show');} }
+function clearField(fid,eid){ const f=el(fid),e=el(eid); if(f)f.classList.remove('error-field'); if(e)e.classList.remove('show'); }
+function saveBookings(){ localStorage.setItem('tf_bookings', JSON.stringify(state.bookings)); }
+function genRef(){ return 'TF25-'+Math.random().toString(36).substring(2,8).toUpperCase(); }
+
+// ─── LOGIN ───
+function doLogin(){
+  ['login-email-err','login-pass-err','login-role-err'].forEach(clearErr);
+  el('login-global-err').textContent='';
+  const em=v('login-email').trim(), pw=v('login-pass').trim(), ro=v('login-role');
+  let ok=true;
+  if(!em){setErr('login-email-err','Email is required.');ok=false;}
+  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){setErr('login-email-err','Enter a valid email address.');ok=false;}
+  if(!pw){setErr('login-pass-err','Password is required.');ok=false;}
+  if(!ro){setErr('login-role-err','Please select your role.');ok=false;}
+  if(!ok) return;
+  const user = DEMO_USERS.find(u=>u.email===em && u.pass===pw);
+  if(!user){el('login-global-err').textContent='Invalid credentials. Please try again.';return;}
+  state.currentUser = user;
+  const init = user.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  ['hdr-avatar','hdr-avatar2'].forEach(id=>{const e=el(id);if(e)e.textContent=init;});
+  ['hdr-name','hdr-name2'].forEach(id=>{const e=el(id);if(e)e.textContent=user.name+' ('+user.role+')';});
+  el('f-email').value = user.email;
+  if(user.role==='Admin') el('admin-tab').style.display='';
+  else el('admin-tab').style.display='none';
+  updateAvailDisplay();
+  showPage('page-app');
+}
+
+function doLogout(){
+  state.currentUser=null;
+  ['login-email','login-pass'].forEach(id=>{const e=el(id);if(e)e.value='';});
+  el('login-role').value='';
+  el('login-global-err').textContent='';
+  resetForm();
+  closePrint();
+  switchTab('book', el('main-nav').children[0]);
+  showPage('page-login');
+}
+
+// ─── TABS ───
+function switchTab(tab, btn){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  el('tab-book').style.display=tab==='book'?'block':'none';
+  el('tab-history').style.display=tab==='history'?'block':'none';
+  el('tab-admin').style.display=tab==='admin'?'block':'none';
+  if(tab==='history') renderHistory();
+  if(tab==='admin') renderAdmin();
+}
+
+// ─── AVAILABILITY ───
+function updateAvailDisplay(){
+  const avail = state.available;
+  el('avail-count').textContent = avail;
+  const badge = el('avail-badge');
+  const fill = el('avail-fill');
+  const pct = (avail/TOTAL_TICKETS*100).toFixed(0);
+  if(fill) fill.style.width = pct+'%';
+  badge.className='ticket-badge';
+  if(avail===0){badge.classList.add('badge-red');badge.textContent='Sold Out';}
+  else if(avail<=10){badge.classList.add('badge-amber');badge.textContent='Few Left';}
+  else{badge.classList.add('badge-green');badge.textContent='Available';}
+  const btn = el('btn-book');
+  if(btn) btn.disabled = avail===0;
+}
+
+// ─── BOOKING ───
+function submitBooking(){
+  ['f-name','f-email','f-phone','f-dept','f-qty'].forEach((fid,i)=>{
+    clearField(fid,['err-name','err-email','err-phone','err-dept','err-qty'][i]);
+  });
+  el('global-err').style.display='none';
+
+  const name  = v('f-name').trim();
+  const email = v('f-email').trim();
+  const phone = v('f-phone').trim();
+  const dept  = v('f-dept');
+  const qtyRaw= v('f-qty');
+  const qty   = parseInt(qtyRaw);
+  let ok=true;
+
+  if(!name) {markErr('f-name','err-name','Full name is required.');ok=false;}
+  if(!email){markErr('f-email','err-email','Email is required.');ok=false;}
+  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){markErr('f-email','err-email','Enter a valid email (e.g. name@college.edu).');ok=false;}
+  if(!phone){markErr('f-phone','err-phone','Phone number is required.');ok=false;}
+  else if(!/^\d{10}$/.test(phone)){markErr('f-phone','err-phone','Enter a valid 10-digit phone number.');ok=false;}
+  if(!dept){markErr('f-dept','err-dept','Please select your department.');ok=false;}
+  if(!qtyRaw||isNaN(qty)||qty<1){markErr('f-qty','err-qty','Enter a positive number of tickets (e.g. 1, 2, 3).');ok=false;}
+  else if(qty>10){markErr('f-qty','err-qty','Maximum 10 tickets per booking.');ok=false;}
+  else if(qty>state.available){
+    const ge=el('global-err');
+    ge.textContent='Only '+state.available+' ticket(s) remaining. You cannot book '+qty+'.';
+    ge.style.display='block';ok=false;
+  }
+  if(!ok) return;
+
+  const ref = genRef();
+  const booking = {ref,name,email,phone,dept,qty,total:qty*PRICE,date:new Date().toLocaleString(),user:state.currentUser.email};
+  state.bookings.unshift(booking);
+  saveBookings();
+  lastBooking = booking;
+
+  // Fill confirmation
+  el('s-name').textContent=name; el('s-email').textContent=email;
+  el('s-phone').textContent=phone; el('s-dept').textContent=dept;
+  el('s-qty').textContent=qty; el('s-total').textContent='₹'+(qty*PRICE);
+  el('s-ref').textContent='Ref: '+ref;
+
+  // Fill print ticket
+  el('pt-name').textContent=name; el('pt-dept').textContent=dept;
+  el('pt-email').textContent=email; el('pt-phone').textContent=phone;
+  el('pt-qty').textContent=qty; el('pt-ref').textContent=ref;
+  el('pt-total').textContent='₹'+(qty*PRICE);
+  el('pt-date').textContent=new Date().toLocaleDateString();
+
+  updateAvailDisplay();
+  showPage('page-confirm');
+}
+
+function resetForm(){
+  ['f-name','f-phone','f-qty'].forEach(id=>{const e=el(id);if(e)e.value='';});
+  el('f-dept').value='';
+  ['f-name','f-email','f-phone','f-dept','f-qty'].forEach((fid,i)=>{
+    clearField(fid,['err-name','err-email','err-phone','err-dept','err-qty'][i]);
+  });
+  el('global-err').style.display='none';
+  if(state.currentUser) el('f-email').value=state.currentUser.email;
+}
+
+function bookAnother(){
+  resetForm();
+  switchTab('book',el('main-nav').children[0]);
+  showPage('page-app');
+}
+
+// ─── HISTORY ───
+function renderHistory(){
+  const list = el('history-list');
+  const mine = state.bookings.filter(b=>state.currentUser&&(b.user===state.currentUser.email||state.currentUser.role==='Admin'));
+  if(mine.length===0){
+    list.innerHTML='<div class="empty-state"><span class="empty-icon">🎫</span>No bookings yet. Book your first ticket above!</div>';
+    return;
+  }
+  list.innerHTML = mine.map(b=>`
+    <div class="hist-card">
+      <div class="hist-left">
+        <div class="hist-name">${b.name} — ${b.dept}</div>
+        <div class="hist-meta">${b.qty} ticket(s) &bull; ${b.email} &bull; ${b.phone}</div>
+        <div class="hist-ref">${b.ref} &bull; ${b.date}</div>
+      </div>
+      <div class="hist-right">
+        <div class="hist-amt">₹${b.total}</div>
+        <div class="hist-qty">${b.qty} ticket(s)</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── ADMIN ───
+function renderAdmin(){
+  const q = (el('admin-search')||{value:''}).value.toLowerCase();
+  const list = q ? state.bookings.filter(b=>
+    b.name.toLowerCase().includes(q)||b.email.toLowerCase().includes(q)||b.ref.toLowerCase().includes(q)||b.dept.toLowerCase().includes(q)
+  ) : state.bookings;
+
+  el('st-total').textContent = state.bookings.length;
+  el('st-tickets').textContent = state.bookings.reduce((s,b)=>s+b.qty,0);
+  el('st-revenue').textContent = '₹'+state.bookings.reduce((s,b)=>s+b.total,0);
+  el('st-remain').textContent = state.available;
+
+  const tbody = el('admin-tbody');
+  const empty = el('admin-empty');
+  if(list.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML = list.map((b,i)=>`
+    <tr>
+      <td style="color:#aaa">${i+1}</td>
+      <td style="color:#4A3AB7;font-weight:600">${b.ref}</td>
+      <td><strong>${b.name}</strong></td>
+      <td style="color:#888">${b.email}</td>
+      <td><span class="ticket-badge badge-green">${b.dept}</span></td>
+      <td style="text-align:center;font-weight:700">${b.qty}</td>
+      <td style="font-weight:700;color:#4A3AB7">₹${b.total}</td>
+      <td style="color:#aaa;font-size:11px">${b.date}</td>
+    </tr>`).join('');
+}
+
+function exportCSV(){
+  const rows = [['Ref','Name','Email','Phone','Dept','Tickets','Amount','Date']];
+  state.bookings.forEach(b=>rows.push([b.ref,b.name,b.email,b.phone,b.dept,b.qty,'₹'+b.total,b.date]));
+  const csv = rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='techfest2025_bookings.csv'; a.click();
+}
+
+// ─── PDF DOWNLOAD ───
+function downloadPDF(){
+  if(!lastBooking){alert('No booking data found.');return;}
+  const b = lastBooking;
+  try{
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit:'mm',format:'a5'});
+    const W=148,pw=10;
+    doc.setFillColor(74,58,183);
+    doc.rect(0,0,W,42,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(22); doc.setFont('helvetica','bold');
+    doc.text('TechFest 2025',W/2,16,{align:'center'});
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.text('Dept. of Computer Science & Engineering',W/2,23,{align:'center'});
+    doc.text('Main Auditorium, Block A  |  20 April 2025, 10:00 AM',W/2,29,{align:'center'});
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('E-TICKET',W/2,38,{align:'center'});
+
+    doc.setTextColor(30,30,30);
+    const fields = [
+      ['Booking Reference', b.ref],
+      ['Attendee Name', b.name],
+      ['Email ID', b.email],
+      ['Phone Number', b.phone],
+      ['Department', b.dept],
+      ['No. of Tickets', String(b.qty)],
+      ['Price per Ticket', '₹'+PRICE],
+      ['Total Amount', '₹'+b.total],
+      ['Booking Date', b.date],
+    ];
+    let y=52;
+    fields.forEach(([label,val])=>{
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(130,130,130);
+      doc.text(label.toUpperCase(), pw, y);
+      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+      doc.text(val, pw, y+5);
+      y+=13;
+    });
+    doc.setDrawColor(220,220,220); doc.line(pw,y,W-pw,y);
+    doc.setFillColor(240,238,255); doc.rect(pw,y+4,W-pw*2,12,'F');
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(74,58,183);
+    doc.text('This is your official e-ticket. Please carry this to the event.',W/2,y+11,{align:'center'});
+
+    doc.save('TechFest2025_Ticket_'+b.ref+'.pdf');
+  }catch(e){
+    alert('PDF library not loaded. Please check your internet connection.');
+    console.error(e);
+  }
+}
+
+// ─── PRINT ───
+function printTicket(){
+  el('print-area').style.display='block';
+  el('close-print-btn').style.display='block';
+  window.print();
+}
+function closePrint(){
+  el('print-area').style.display='none';
+}
+</script>
+</body>
+</html>
